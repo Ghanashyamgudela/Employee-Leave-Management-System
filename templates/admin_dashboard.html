@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Admin Dashboard | Leave Management</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+background-image: linear-gradient(-20deg, #ddd6f3 0%, #faaca8 100%, #faaca8 100%);background-repeat: no-repeat;
+background-size: cover;
+background-attachment: fixed;
+
+        }
+
+        .navbar {
+            background: #ddeedd;
+        }
+
+        .navbar a {
+            color: rgb(247, 243, 243);
+        }
+
+        .shine-button {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shine-button::before {
+            content: '';
+            position: absolute;
+            height: 250%;
+            width: 40px;
+            top: 0;
+            left: -60px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transform: rotate(45deg) translateY(-35%);
+            animation: shine 3s ease infinite;
+        }
+
+        @keyframes shine {
+            0% {
+                left: -80px;
+            }
+
+            40%,
+            100% {
+                left: calc(100% + 20px);
+            }
+        }
+
+        .button-red {
+            background: inherit;
+            color: white;
+            border: none;
+       
+        }
+
+        .button-red:hover {
+            transform: translateY(-3px);
+            color: rgb(241, 245, 241);
+           border: none;
+           
+        }
+
+        .button-green {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(67, 233, 123, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .button-green:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(67, 233, 123, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .button-blue {
+            background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(33, 147, 176, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .button-blue:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(33, 147, 176, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .card-hover:hover {
+            transform: scale(1.02);
+            transition: 0.2s;
+        }
+
+        .row .shadow {
+            background-color: inherit;
+            backdrop-filter: blur(10px);
+            
+            border: 2px white solid;
+        }
+
+        .ms-auto a {
+           
+            width: 100%;
+        }
+        .col-md-4 i{
+            width: 100%;
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 22px;
+            margin-top: 22px;
+        }
+        .gap-2{
+            gap: 4.5rem !important;
+        }
+    </style>
+</head>
+
+<body class="">
+
+    <!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="/admin/dashboard">
+        <i class="fa-solid fa-building-wheat"></i> Admin Panel
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="adminNavbar">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-2">
+
+            <li class="nav-item">
+                <a href="{{ url_for('admin_reports') }}" class="btn  button-red btn-sm">
+                    <i class="fa-regular fa-flag"></i> Reports
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{{ url_for('admin_view_students') }}" class="btn  button-red btn-sm">
+                    <i class="fa-solid fa-street-view"></i> View Employee's
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{{ url_for('admin_requests') }}" class="btn button-red btn-sm">
+                    <i class="fa-regular fa-eye"></i> View Leave Requests
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="/logout" class="btn  button-red btn-sm">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                </a>
+            </li>
+
+        </ul>
+    </div>
+</nav>
+
+
+    <div class="container mt-5">
+
+        <h3 class="mb-4">Welcome, Admin</h3>
+
+        <div class="row g-4">
+
+            <!-- View Leave Requests Card -->
+            <div class="col-md-4">
+                <a href="/admin/requests" style="text-decoration: none;">
+                    <div class="card shadow card-hover p-4 text-center">
+                        <h4>Leave Requests</h4>
+                        <i class="fa-solid fa-scroll"></i>
+                        <p>View and manage Employee's leave requests</p>
+                    </div>
+                </a>
+            </div>
+
+            <!-- View Students Card -->
+            <div class="col-md-4">
+                <a href="/admin/students" style="text-decoration: none;">
+                    <div class="card shadow card-hover p-4 text-center">
+                        <h4>Employee's</h4>
+                        <i class="fa-solid fa-user-group"></i>
+                        <p>View all registered Employee's</p>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Reports Card -->
+            <div class="col-md-4">
+                <a href="/admin/reports" style="text-decoration: none;">
+                    <div class="card shadow card-hover p-4 text-center">
+                        <h4>Reports</h4>
+                        <i class="fa-regular fa-flag"></i>
+                        <p>Generate leave reports and statistics</p>
+                    </div>
+                </a>
+            </div>
+
+
+
+            <div class="col-md-4">
+                <a href="/register" style="text-decoration: none;">
+                    <div class="card shadow card-hover p-4 text-center">
+                        
+                            <h4 >
+                                New Employee? Register</h4>
+                                <i class="fa-solid fa-user-plus"></i>
+                    
+                        <p>Registration of an Employee</p>
+                    </div>
+                </a>
+            </div>
+
+
+
+
+        </div>
+
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

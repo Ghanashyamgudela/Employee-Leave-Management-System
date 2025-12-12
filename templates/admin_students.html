@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Students</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <style>
+        body{
+            
+ background-image: linear-gradient(-20deg, #ddd6f3 0%, #faaca8 100%, #faaca8 100%);background-repeat: no-repeat;
+background-size: cover;
+background-attachment: fixed;
+
+            
+        }
+        table { border-collapse: collapse; width: 80%; margin: auto; }
+        th, td { border: 2px solid white; padding: 8px; text-align: center; }
+        th { background-color: #f2f2f2; }
+        h1 { text-align: center; color: green;}
+        .shine-button {
+            position: relative;
+            overflow: hidden !important;
+            display: inline-block;
+            vertical-align: middle;
+            border-radius: 12px;
+            padding: 8px 24px;
+            min-width: 120px;
+            text-align: center;
+        }
+        .shine-button::before {
+            content: '';
+            position: absolute;
+            height: 250%;
+            width: 40px;
+            top: 0;
+            left: -60px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transform: rotate(45deg) translateY(-35%);
+            animation: shine 3s ease infinite;
+            pointer-events: none;
+            border-radius: 12px;
+        }
+        @keyframes shine {
+            0% { left: -80px; }
+            40%,100% { left: calc(100% + 20px); }
+        }
+        .button-lime {
+            background: linear-gradient(135deg, #b4ec51 0%, #429321 100%);
+            color: #fff;
+            border: 1px solid white;
+            box-shadow: 0 10px 30px rgba(180,236,81,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .button-lime:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(180,236,81,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+body{
+     
+  font-family: "Roboto", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
+}
+
+    </style>
+</head>
+<body>
+    <h1><i class="fa-solid fa-users"></i> All Employee's</h1>
+    <div style="width:80%; margin: 12px auto 8px auto; display:flex; justify-content:space-between; gap:12px; align-items:center;">
+        <form method="GET" action="/admin/students" style="flex:1; display:flex; gap:8px;">
+            <input type="search" name="q" placeholder="Search employees by name, email or department" value="{{ q or '' }}" style="flex:1; padding:8px; border-radius:6px; border:1px solid #ccc;">
+            <button type="submit" class="shine-button button-lime" style="padding:8px 12px;">Search</button>
+            <a href="/admin/students" class="shine-button button-lime" style="padding:8px 12px; text-decoration:none;">Clear</a>
+        </form>
+    </div>
+
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Full Name</th>
+            <th>Department</th>
+            <th>Email</th>
+        </tr>
+        <tbody id="students-tbody">
+        {% if students %}
+        {% for student in students %}
+        <tr>
+            <td>{{ student.student_id }}</td>
+            <td>{{ student.full_name }}</td>
+            <td>{{ student.department }}</td>
+            <td>{{ student.email }}</td>
+        </tr>
+        {% endfor %}
+        {% else %}
+        <tr>
+            <td colspan="4">No employees found.</td>
+        </tr>
+        {% endif %}
+        </tbody>
+    </table>
+    <div style="text-align:center; margin-top:20px;">
+        <a href="{{ url_for('admin_dashboard') }}" class="shine-button button-lime" style="padding: 10px 24px; border-radius: 6px; text-decoration: none;"><i class="fa-solid fa-angles-left"></i> Back to Dashboard</a>
+                <a href="{{ url_for('admin_download_students_excel') }} " class="shine-button button-lime"  style="padding: 10px 24px; border-radius: 6px; text-decoration: none;" ><i class="fa-solid fa-file-csv"></i> View
+        Download as Excel</a>
+    </div>
+</body>
+<script>
+// Debounced live search for admin students
+;(function(){
+    const input = document.querySelector('input[name="q"]');
+    if (!input) return;
+    const tbody = document.getElementById('students-tbody');
+    let timer = null;
+
+    function renderRows(rows){
+        if (!tbody) return;
+        if (!rows || rows.length === 0){
+            tbody.innerHTML = '<tr><td colspan="4">No employees found.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = rows.map(r => {
+            const id = r.student_id || r.student_id;
+            const name = r.full_name || '';
+            const dept = r.department || '';
+            const email = r.email || '';
+            return `<tr><td>${id}</td><td>${escapeHtml(name)}</td><td>${escapeHtml(dept)}</td><td>${escapeHtml(email)}</td></tr>`;
+        }).join('');
+    }
+
+    function escapeHtml(s){
+        return (s+'').replace(/[&<>"']/g, function(c){
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c];
+        });
+    }
+
+    async function doSearch(q){
+        try{
+            const resp = await fetch('/admin/students/search?q=' + encodeURIComponent(q), {credentials: 'same-origin'});
+            if (!resp.ok){
+                // on auth error or server error, keep current contents
+                return;
+            }
+            const data = await resp.json();
+            renderRows(data);
+        }catch(e){
+            console.error('Search error', e);
+        }
+    }
+
+    input.addEventListener('input', function(e){
+        clearTimeout(timer);
+        timer = setTimeout(()=> doSearch(e.target.value.trim()), 250);
+    });
+})();
+</script>
+</html>
