@@ -904,71 +904,9 @@ def choose_user():
 @app.route('/')
 def home():
     return redirect('/choose')
-@app.route('/admin/enhanced-charts')
-def admin_enhanced_charts():
-    if 'admin_id' not in session:
-        return redirect('/admin/login')
-    return render_template('admin_enhanced_charts.html')
-@app.route('/admin/enhanced-chart-data')
-def admin_enhanced_chart_data():
-    if 'admin_id' not in session:
-        return {}, 403
 
-    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
-    # 1️⃣ Overall leave type totals (Pie chart)
-    cur.execute("SELECT leave_type, SUM(leave_days) AS total_days FROM leave_requests GROUP BY leave_type")
-    leave_type_data = {row['leave_type']: float(row['total_days']) for row in cur.fetchall()}
-
-    # 2️⃣ Monthly leave trends (stacked bar)
-    cur.execute("""
-        SELECT DATE_FORMAT(from_date, '%Y-%m') AS month,
-               SUM(status='Approved') AS approved,
-               SUM(status='Pending') AS pending,
-               SUM(status='Rejected') AS rejected
-        FROM leave_requests
-        GROUP BY month
-        ORDER BY month
-    """)
-    monthly_data = cur.fetchall()
-    months = [row['month'] for row in monthly_data]
-    approved = [row['approved'] for row in monthly_data]
-    pending = [row['pending'] for row in monthly_data]
-    rejected = [row['rejected'] for row in monthly_data]
-
-    # 3️⃣ Leaves per student (stacked bar)
-    cur.execute("""
-        SELECT s.full_name AS student,
-               SUM(lr.status='Approved') AS approved,
-               SUM(lr.status='Pending') AS pending,
-               SUM(lr.status='Rejected') AS rejected
-        FROM leave_requests lr
-        JOIN student s ON lr.student_id = s.student_id
-        GROUP BY s.student_id
-        ORDER BY s.full_name
-    """)
-    student_data = cur.fetchall()
-    students = [row['student'] for row in student_data]
-    student_approved = [row['approved'] for row in student_data]
-    student_pending = [row['pending'] for row in student_data]
-    student_rejected = [row['rejected'] for row in student_data]
-
-    return {
-        "leave_type": leave_type_data,
-        "monthly": {
-            "months": months,
-            "approved": approved,
-            "pending": pending,
-            "rejected": rejected
-        },
-        "student": {
-            "students": students,
-            "approved": student_approved,
-            "pending": student_pending,
-            "rejected": student_rejected
-        }
-    }
 
 
 if __name__ == "__main__":
     app.run(debug=True)
+
