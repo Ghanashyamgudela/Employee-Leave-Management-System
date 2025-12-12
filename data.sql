@@ -141,7 +141,7 @@ CREATE TABLE `leave_requests` (
   PRIMARY KEY (`id`),
   KEY `student_id` (`student_id`),
   CONSTRAINT `leave_requests_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `student` (`student_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -150,7 +150,7 @@ CREATE TABLE `leave_requests` (
 
 LOCK TABLES `leave_requests` WRITE;
 /*!40000 ALTER TABLE `leave_requests` DISABLE KEYS */;
-INSERT INTO `leave_requests` VALUES (6,8,'Hi Manager,\r\nI would like to request leave on Dec1-Dec5 due to Health issue.\r\nPlease let me know if you need any additional information.\r\nThank you.','2025-12-01','2025-12-05','Pending','Paid Leave',0,0,NULL),(7,8,'Hi Manager,\r\nI’m not feeling well and will not be able to come to work today Nov 20. I request you to kindly grant me sick leave.\r\nI will update you if my condition changes.\r\nThank you.','2025-11-20','2025-11-22','Approved','Paid Leave',0,0,NULL),(8,7,'Hi Manager,\r\nI would like to take leave on 7 Dec 2025 due to some urgent personal work.\r\nKindly approve my leave.\r\nRegards,','2025-12-07','2025-12-07','Pending','Paid Leave',0,0,NULL),(9,7,'Hi Manager,\r\nI am facing a family emergency and will need leave on Dec 4 2025 to Dec 7 2025.\r\nI request your approval and will keep you updated.\r\nRegards,','2025-12-04','2025-12-07','Rejected','Paid Leave',0,0,NULL),(10,8,'I want a Emergency Leave','2025-12-08','2025-12-09','Cancelled','Emergency Leave',0,2,NULL),(11,8,'i want a leave in half day','2025-12-20','2025-12-20','Cancelled','Paid Leave',1,0.5,NULL),(12,8,'hi','2025-12-04','2025-12-04','Approved','Paid Leave',1,0.5,NULL),(13,8,'hiiii','2025-12-04','2025-12-04','Approved','Paid Leave',0,1,NULL);
+INSERT INTO `leave_requests` VALUES (14,10,'Sorry today iam not feeling well','2025-12-15','2025-12-26','Rejected','Paid Leave',0,12,'HR'),(16,11,'Hi Sir, I would like to request leave from15-12-2025 to 16-12-2025 due to Personal Reason. Please let me know if this is okay. Thanks!','2025-12-15','2025-12-16','Pending','Emergency Leave',0,2,'Engineering'),(17,11,'Hi Sir, requesting leave from 25-12-2025 to 26-12-2025. Thanks!','2025-12-25','2025-12-26','Pending','Paid Leave',0,2,'Engineering'),(18,12,'Hi Sir, I need to take leave from 04-01-2026 to 05-01-2026 due to Emergency. Sorry for the short notice. Please confirm. Thanks!','2026-01-04','2026-01-05','Approved','Emergency Leave',0,2,'Finance'),(19,13,'Dear HR, requesting leave from 22 -12-2025 to 24-12-2025. Thanks!','2025-12-22','2025-12-24','Pending','Paid Leave',0,3,'Support'),(20,14,'Hi HR,\r\nI would like to request planned leave from 06-01-2026 to 08-01-2026. All my tasks are up to date, and I will ensure a smooth handover before I leave.\r\nThank you,','2026-01-06','2026-01-08','Approved','Extra Leave',0,3,'Finance');
 /*!40000 ALTER TABLE `leave_requests` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -175,7 +175,7 @@ CREATE TABLE `student` (
   `fine_amount` decimal(10,2) DEFAULT '0.00',
   PRIMARY KEY (`student_id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -184,7 +184,7 @@ CREATE TABLE `student` (
 
 LOCK TABLES `student` WRITE;
 /*!40000 ALTER TABLE `student` DISABLE KEYS */;
-INSERT INTO `student` VALUES (2,'Madhu','ghanagudela@gmail.com','Ghana@1230',0,'j4TRs0XiRriwdZm6r0i6mn1atNOlZluQMJ2HBXmj0O8',12,5,5,NULL,0.00),(7,'Ghana Shyam','ghana19183@gmail.com','Ghana@1230',1,NULL,12,5,5,NULL,0.00),(8,'Ramu','pakelad227@datehype.com','Demo@123',1,NULL,12,7,5,NULL,0.00),(9,'Arjun','Demo@gmail.com','Demo@123',1,'asdfhhj34jkreurj4',12,5,5,NULL,0.00);
+INSERT INTO `student` VALUES (10,'Arjun','defexo9125@naqulu.com','Ghana@1230',1,NULL,24,5,5,'HR',0.00),(11,'Ghana Shyam Gudela','ghanagudela@gmail.com','Ghana@1230',1,NULL,10,1,5,'Engineering',0.00),(12,'R. Varun Reddy','lolita2497@lawior.com','Ghana@1230',1,NULL,12,3,5,'Finance',0.00),(13,'Madhu Gude','wower69969@lawior.com','Demo@1230',1,NULL,9,5,5,'Support',0.00),(14,'Mohan Reddy','gokehej610@lawior.com','Demo@1230',1,NULL,12,5,2,'Finance',0.00);
 /*!40000 ALTER TABLE `student` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -197,4 +197,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-12-07 23:20:06
+-- Dump completed on 2025-12-12 20:09:21
