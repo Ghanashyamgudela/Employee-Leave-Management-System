@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, flash, send_file, jsonify
+from flask import Flask, Response, render_template, request, redirect, session, flash, send_file, jsonify
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 from openpyxl import Workbook
@@ -8,6 +8,11 @@ from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 import secrets
 import os
+import cv2
+import numpy as np
+from PIL import Image
+
+
 
 # optional PDF support
 try:
@@ -225,26 +230,52 @@ def student_dashboard():
 
     cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
 
-    # Fetch student details (including balances)
-    cur.execute("SELECT student_id, full_name, paid_leaves, emergency_leaves, extra_leaves, fine_amount FROM student WHERE student_id=%s", 
-                (session['student_id'],))
+    # Fetch student details
+    cur.execute("""
+        SELECT student_id, full_name, paid_leaves, emergency_leaves, extra_leaves, fine_amount
+        FROM student
+        WHERE student_id=%s
+    """, (session['student_id'],))
+
     student = cur.fetchone()
 
-    # Fetch student's leave history
+    # Fetch leave history
     cur.execute("""
         SELECT id, reason, from_date, to_date, status, leave_type, leave_days, is_half_day, department
         FROM leave_requests
         WHERE student_id=%s
         ORDER BY from_date DESC
     """, (session['student_id'],))
+
     leaves = cur.fetchall()
 
-    return render_template('student_dashboard.html', student=student, leaves=leaves)
+    # 🔹 Check today's attendance
+    today = date.today()
+
+    cur.execute("""
+        SELECT * FROM attendance
+        WHERE employee_id=%s AND date=%s
+    """, (session['student_id'], today))
+
+    attendance = cur.fetchone()
+
+    if attendance:
+        attendance_status = "Marked"
+    else:
+        attendance_status = "Not Marked"
+
+    return render_template(
+        'student_dashboard.html',
+        student=student,
+        leaves=leaves,
+        attendance_status=attendance_status,
+        attendance=attendance
+    )
 
 # ---------------- APPLY LEAVE (updated) ----------------
 from datetime import datetime, date
 
-from datetime import datetime, date
+
 
 @app.route('/student/apply_leave', methods=['GET', 'POST'])
 def apply_leave():
@@ -511,7 +542,51 @@ def admin_login():
 def admin_dashboard():
     if 'admin_id' not in session:
         return redirect('/admin/login')
-    return render_template('admin_dashboard.html')
+    # Fetch recent attendance records to show on admin dashboard with optional filters
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    q = request.args.get('q', '').strip()
+    department_filter = request.args.get('department', '').strip()
+    date_filter = request.args.get('date', '').strip()
+
+    sql = [
+        "SELECT a.id, a.employee_id, s.full_name, s.department, a.date, a.time",
+        "FROM attendance a",
+        "LEFT JOIN student s ON a.employee_id = s.student_id",
+        "WHERE 1=1"
+    ]
+    params = []
+
+    if q:
+        sql.append("AND (s.full_name LIKE %s OR a.employee_id LIKE %s)")
+        like = f"%{q}%"
+        params.extend([like, like])
+
+    if department_filter:
+        sql.append("AND s.department = %s")
+        params.append(department_filter)
+
+    if date_filter:
+        sql.append("AND a.date = %s")
+        params.append(date_filter)
+
+    sql.append("ORDER BY a.date DESC, a.time DESC LIMIT 500")
+
+    try:
+        cur.execute(" ".join(sql), tuple(params))
+        attendances = cur.fetchall()
+    except Exception:
+        attendances = []
+
+    # fetch list of departments for filter dropdown
+    try:
+        cur2 = mysql.connection.cursor()
+        cur2.execute("SELECT DISTINCT department FROM student WHERE department IS NOT NULL AND department <> '' ORDER BY department")
+        departments = [r[0] for r in cur2.fetchall()]
+    except Exception:
+        departments = []
+
+    return render_template('admin_dashboard.html', attendances=attendances, departments=departments, q=q, department_filter=department_filter, date_filter=date_filter)
 
 
 # ---------------- ADMIN: VIEW REQUESTS ----------------
@@ -815,6 +890,128 @@ def admin_view_students():
     return render_template('admin_students.html', students=students, q=q)
 
 
+@app.route('/admin/face_register')
+def admin_face_register():
+    if 'admin_id' not in session:
+        return redirect('/admin/login')
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cur.execute("SELECT student_id, full_name FROM student ORDER BY full_name")
+    students = cur.fetchall()
+    return render_template('admin_face_register.html', students=students)
+
+
+@app.route('/admin/capture_face', methods=['POST'])
+def admin_capture_face():
+    if 'admin_id' not in session:
+        return jsonify({'ok': False, 'msg': 'Not authorized'}), 403
+    data = request.get_json() or {}
+    emp = data.get('employee_id')
+    if not emp:
+        return jsonify({'ok': False, 'msg': 'employee_id required'}), 400
+
+    ds_dir = os.path.join('face_attendance', 'dataset')
+    os.makedirs(ds_dir, exist_ok=True)
+
+    # open camera, capture one frame, detect first face, save
+    cap = cv2.VideoCapture(0)
+    try:
+        success, img = cap.read()
+        if not success:
+            return jsonify({'ok': False, 'msg': 'Camera error'})
+
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        faces = faceCascade.detectMultiScale(gray, 1.3, 5)
+        if len(faces) == 0:
+            return jsonify({'ok': False, 'msg': 'No face found'})
+
+        # determine next count
+        existing = [f for f in os.listdir(ds_dir) if f".{emp}." in f]
+        next_idx = 1
+        if existing:
+            # parse highest count
+            counts = []
+            for fn in existing:
+                try:
+                    counts.append(int(fn.split('.')[-2]))
+                except Exception:
+                    pass
+            if counts:
+                next_idx = max(counts) + 1
+
+        x, y, w, h = faces[0]
+        fname = f"User.{emp}.{next_idx}.jpg"
+        cv2.imwrite(os.path.join(ds_dir, fname), gray[y:y+h, x:x+w])
+        return jsonify({'ok': True, 'count': next_idx})
+    finally:
+        try:
+            cap.release()
+        except Exception:
+            pass
+
+
+@app.route('/admin/train_faces', methods=['POST'])
+def admin_train_faces():
+    if 'admin_id' not in session:
+        return jsonify({'ok': False, 'msg': 'Not authorized'}), 403
+    try:
+        path = os.path.join('face_attendance', 'dataset')
+        recognizer = cv2.face.LBPHFaceRecognizer_create()
+        detector = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+
+        faceSamples = []
+        ids = []
+
+        from PIL import Image as PILImage
+        for imagePath in os.listdir(path):
+            try:
+                img = PILImage.open(os.path.join(path, imagePath)).convert('L')
+            except Exception:
+                continue
+            img_numpy = np.array(img, 'uint8')
+            try:
+                id = int(imagePath.split(".")[1])
+            except Exception:
+                continue
+            faces = detector.detectMultiScale(img_numpy)
+            for (x, y, w, h) in faces:
+                faceSamples.append(img_numpy[y:y+h, x:x+w])
+                ids.append(id)
+
+        if not faceSamples:
+            return jsonify({'ok': False, 'msg': 'No face images found in dataset'})
+
+        recognizer.train(faceSamples, np.array(ids))
+        trainer_dir = os.path.join('face_attendance', 'trainer')
+        os.makedirs(trainer_dir, exist_ok=True)
+        recognizer.save(os.path.join(trainer_dir, 'trainer.yml'))
+        return jsonify({'ok': True})
+    except Exception as e:
+        return jsonify({'ok': False, 'msg': str(e)})
+
+
+@app.route('/admin/students/delete/<int:student_id>', methods=['POST'])
+def admin_delete_student(student_id):
+    if 'admin_id' not in session:
+        return redirect('/admin/login')
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("DELETE FROM student WHERE student_id=%s", (student_id,))
+        mysql.connection.commit()
+        # remove dataset images for this id
+        ds = os.path.join('face_attendance', 'dataset')
+        if os.path.isdir(ds):
+            for fn in os.listdir(ds):
+                if f".{student_id}." in fn:
+                    try:
+                        os.remove(os.path.join(ds, fn))
+                    except Exception:
+                        pass
+        flash('Employee deleted')
+    except Exception as e:
+        flash('Failed to delete employee')
+    return redirect('/admin/students')
+
+
 @app.route('/admin/students/search')
 def admin_students_search():
     if 'admin_id' not in session:
@@ -905,7 +1102,159 @@ def choose_user():
 def home():
     return redirect('/choose')
 
+@app.route("/holidays")
+def holidays():
+    return render_template("holiday_calendar.html")
 
+
+@app.route("/get_holidays")
+def get_holidays():
+
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor) 
+
+    cur.execute("SELECT holiday_name, holiday_date FROM holidays")
+
+    data = cur.fetchall()
+
+    events = []
+
+    for row in data:
+        # rows may be returned as dicts (DictCursor) or tuples depending on cursor type;
+        # handle both safely
+        if isinstance(row, dict):
+            title = row.get('holiday_name')
+            date_val = row.get('holiday_date')
+        else:
+            title = row[0] if len(row) > 0 else None
+            date_val = row[1] if len(row) > 1 else None
+
+        events.append({
+            "title": title,
+            "start": str(date_val)
+        })
+
+    return jsonify(events)
+
+recognizer = cv2.face.LBPHFaceRecognizer_create()
+recognizer.read('face_attendance/trainer/trainer.yml')
+
+faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+# confidence: lower is better for LBPH. Default threshold can be configured in config.py
+# Example: ATT_CONFIDENCE = 80
+ATT_CONFIDENCE = int(app.config.get('ATT_CONFIDENCE', 80))
+
+def generate_frames():
+    # open camera per-stream so it can be reopened later
+    cap = cv2.VideoCapture(0)
+    try:
+        while True:
+            success, img = cap.read()
+            if not success:
+                break
+
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            faces = faceCascade.detectMultiScale(gray, 1.3, 5)
+
+            for (x, y, w, h) in faces:
+                try:
+                    id, confidence = recognizer.predict(gray[y:y+h, x:x+w])
+                except Exception:
+                    continue
+
+                if confidence < ATT_CONFIDENCE:
+                    cv2.putText(img, "Employee " + str(id), (x, y-10),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+                cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
+
+            ret, buffer = cv2.imencode('.jpg', img)
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+    finally:
+        try:
+            cap.release()
+        except Exception:
+            pass
+        
+@app.route('/attendance')
+def attendance():
+    return render_template('attendance.html')
+
+
+
+
+        
+@app.route('/video')
+def video():
+    return Response(generate_frames(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+@app.route('/mark_attendance', methods=['POST'])
+def mark_attendance():
+    if 'student_id' not in session:
+        return jsonify({'ok': False, 'msg': 'Not logged in'}), 403
+
+    # If attendance already recorded today for this user, return immediately
+    try:
+        today = date.today()
+        cur_check = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cur_check.execute("SELECT * FROM attendance WHERE employee_id=%s AND date=%s", (session['student_id'], today))
+        if cur_check.fetchone():
+            return jsonify({'ok': False, 'msg': 'Attendance already marked for today'})
+    except Exception:
+        # if DB check fails, continue to attempt marking
+        pass
+
+    # capture one frame from camera (open/close per-request)
+    cap = cv2.VideoCapture(0)
+    try:
+        success, img = cap.read()
+    finally:
+        try:
+            cap.release()
+        except Exception:
+            pass
+
+    if not success:
+        return jsonify({'ok': False, 'msg': 'Camera error'}), 500
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = faceCascade.detectMultiScale(gray, 1.3, 5)
+    if len(faces) == 0:
+        return jsonify({'ok': False, 'msg': 'No face detected'})
+
+    matched = False
+    preds = []
+    for (x, y, w, h) in faces:
+        try:
+            id_pred, confidence = recognizer.predict(gray[y:y+h, x:x+w])
+        except Exception:
+            continue
+        preds.append({'id': int(id_pred), 'confidence': float(confidence)})
+        # lower confidence means better match for LBPH
+        if confidence < ATT_CONFIDENCE and int(id_pred) == int(session['student_id']):
+            matched = True
+            today = date.today()
+            cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cur.execute("SELECT * FROM attendance WHERE employee_id=%s AND date=%s", (session['student_id'], today))
+            existing = cur.fetchone()
+            if existing:
+                return jsonify({'ok': False, 'msg': 'Attendance already marked for today'})
+
+            cur2 = mysql.connection.cursor()
+            cur2.execute("INSERT INTO attendance(employee_id, date, time) VALUES(%s, %s, %s)", (session['student_id'], today, datetime.now().time()))
+            mysql.connection.commit()
+            return jsonify({'ok': True, 'msg': 'Attendance marked'})
+
+    if not matched:
+        return jsonify({'ok': False, 'msg': 'Face not recognized or does not match your account', 'predictions': preds})
+
+@app.route('/stop_camera', methods=['GET','POST'])
+def stop_camera():
+    # Camera resources are opened per-stream/operation; nothing to do here
+    return redirect('/student/dashboard')
 
 if __name__ == "__main__":
     app.run(debug=True)
