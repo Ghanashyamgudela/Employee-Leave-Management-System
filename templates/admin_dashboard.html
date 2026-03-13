@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Admin Dashboard | Leave Management</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-image: linear-gradient(-20deg, #ddd6f3 0%, #faaca8 100%, #faaca8 100%);
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+
+        }
+
+        .navbar {
+            background: #ddeedd;
+        }
+
+        .navbar a {
+            color: rgb(247, 243, 243);
+        }
+
+        .shine-button {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shine-button::before {
+            content: '';
+            position: absolute;
+            height: 250%;
+            width: 40px;
+            top: 0;
+            left: -60px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transform: rotate(45deg) translateY(-35%);
+            animation: shine 3s ease infinite;
+        }
+
+        @keyframes shine {
+            0% {
+                left: -80px;
+            }
+
+            40%,
+            100% {
+                left: calc(100% + 20px);
+            }
+        }
+
+        .button-red {
+            background: inherit;
+            color: white;
+            border: none;
+
+        }
+
+        .button-red:hover {
+            transform: translateY(-3px);
+            color: rgb(241, 245, 241);
+            border: none;
+
+        }
+
+        .button-green {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(67, 233, 123, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .button-green:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(67, 233, 123, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .button-blue {
+            background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(33, 147, 176, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .button-blue:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(33, 147, 176, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .card-hover:hover {
+            transform: scale(1.02);
+            transition: 0.2s;
+        }
+
+        .row .shadow {
+            background-color: inherit;
+            backdrop-filter: blur(10px);
+
+            border: 2px white solid;
+        }
+
+        .ms-auto a {
+
+            width: 100%;
+        }
+
+        .col-md-4 i {
+            width: 100%;
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 22px;
+            margin-top: 22px;
+        }
+
+        .gap-2 {
+            gap: 4.5rem !important;
+        }
+
+        /* Report-like styles */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 600;
+        }
+
+        .shine-button {
+            border: 2px solid red;
+            display: inline-block;
+            vertical-align: middle;
+            border-radius: 8px;
+            padding: 8px 18px;
+            background: transparent;
+            color: red;
+            text-decoration: none;
+        }
+
+        .shine-button::before {
+            border-radius: 8px;
+        }
+
+        .button-yellow {
+            background: linear-gradient(135deg, #fceabb 0%, #f8b500 100%);
+            color: #fff;
+            border: white solid 2px;
+            box-shadow: 0 10px 30px rgba(248, 181, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .button-yellow:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(248, 181, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .attendance-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .attendance-table th,
+        .attendance-table td {
+            border: 2px solid white;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .attendance-table thead th {
+            background-color: #f2f2f2;
+        }
+        .table-striped>tbody>tr>*{
+            background: none;
+        }
+        .table-striped>tbody>tr:nth-of-type(odd)>*{
+            background: none;
+        }
+    </style>
+</head>
+
+<body class="">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
+        <a class="navbar-brand" href="/admin/dashboard">
+            <i class="fa-solid fa-building-wheat"></i> Admin Panel
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="adminNavbar">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 gap-2">
+
+                <li class="nav-item">
+                    <a href="{{ url_for('admin_reports') }}" class="btn  button-red btn-sm">
+                        <i class="fa-regular fa-flag"></i> Reports
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{{ url_for('admin_view_students') }}" class="btn  button-red btn-sm">
+                        <i class="fa-solid fa-street-view"></i> View Employee's
+                    </a>
+                </li>
+
+
+                <li class="nav-item">
+                    <a href="{{ url_for('admin_view_students') }}" class="btn  button-red btn-sm" title="Terminate Employee">
+                        <i class="fa-solid fa-user-slash"></i> Terminate
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{{ url_for('admin_face_register') }}" class="btn  button-red btn-sm">
+                        <i class="fa-solid fa-camera-retro"></i> Face Register
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{{ url_for('admin_requests') }}" class="btn button-red btn-sm">
+                        <i class="fa-regular fa-eye"></i> View Leave Requests
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="/logout" class="btn  button-red btn-sm">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+    </nav>
+
+
+    <div class="container mt-5">
+
+        <h3 class="mb-4">Welcome, Admin</h3>
+
+        <div class="row g-4">
+
+            <!-- View Leave Requests Card -->
+            <div class="col-md-4">
+                <a href="/admin/requests" style="text-decoration: none;">
+                    <div class="card shadow card-hover p-4 text-center">
+                        <h4>Leave Requests</h4>
+                        <i class="fa-solid fa-scroll"></i>
+                        <p>View and manage Employee's leave requests</p>
+                    </div>
+                </a>
+            </div>
+
+            <!-- View Students Card -->
+            <div class="col-md-4">
+                <a href="/admin/students" style="text-decoration: none;">
+                    <div class="card shadow card-hover p-4 text-center">
+                        <h4>Employee's</h4>
+                        <i class="fa-solid fa-user-group"></i>
+                        <p>View all registered Employee's</p>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Reports Card -->
+            <div class="col-md-4">
+                <a href="/admin/reports" style="text-decoration: none;">
+                    <div class="card shadow card-hover p-4 text-center">
+                        <h4>Reports</h4>
+                        <i class="fa-regular fa-flag"></i>
+                        <p>Generate leave reports and statistics</p>
+                    </div>
+                </a>
+            </div>
+
+
+
+            <div class="col-md-4">
+                <a href="{{ url_for('admin_view_students') }}" style="text-decoration: none;">
+                    <div class="card shadow card-hover p-4 text-center">
+
+                        <h4>
+                            Employee Management</h4>
+                        <i class="fa-solid fa-user-gear"></i>
+
+                        <p>Manage Employee records</p>
+                    </div>
+                </a>
+            </div>
+
+
+
+            
+            <div class="col-md-4">
+                <a href="{{ url_for('admin_face_register') }}" style="text-decoration: none;">
+                    <div class="card shadow card-hover p-4 text-center">
+
+                        <h4>
+                            Employee Biometric Registration</h4>
+                                        <i class="fa-solid fa-camera-retro"></i>
+
+
+                        <p>Register Employee biometric data</p>
+                    </div>
+                </a>
+            </div>
+
+
+
+            
+            <div class="col-md-4">
+                <a href="/register" style="text-decoration: none;">
+                    <div class="card shadow card-hover p-4 text-center">
+
+                        <h4>
+                            New Employee? Register</h4>
+                        <i class="fa-solid fa-user-plus"></i>
+
+                        <p>Registration of an Employee</p>
+                    </div>
+                </a>
+            </div>
+
+
+
+
+        </div>
+
+    </div>
+
+    <div class="container mt-4">
+        <h4>Recent Attendance Records</h4>
+        <form class="row g-2 mb-3" method="get" action="/admin/dashboard">
+            <div class="col-auto">
+                <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search name or ID">
+            </div>
+            <div class="col-auto">
+                <select name="department" class="form-select">
+                    <option value="">All Departments</option>
+                    {% for d in departments %}
+                    <option value="{{ d }}" {% if department_filter==d %}selected{% endif %}>{{ d }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <input type="date" name="date" value="{{ date_filter }}" class="form-control">
+            </div>
+            <div class="col-auto">
+                <button class="shine-button button-yellow" type="submit">Filter</button>
+                <a href="/admin/dashboard" class="shine-button" style="margin-left:8px; text-decoration:none;">Reset</a>
+            </div>
+        </form>
+        {% if attendances %}
+        <div class="table-responsive">
+            <table class="table table-striped attendance-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Employee ID</th>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in attendances %}
+                    <tr>
+                        <td>{{ a.id }}</td>
+                        <td>{{ a.employee_id }}</td>
+                        <td>{{ a.full_name or 'Unknown' }}</td>
+                        <td>{{ a.department or '' }}</td>
+                        <td>{{ a.date }}</td>
+                        <td>{{ a.time }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>No attendance records available.</p>
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

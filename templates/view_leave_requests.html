@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" crossorigin="anonymous" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
+    <title>Leave Requests | Admin Panel</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-image: linear-gradient(-20deg, #ddd6f3 0%, #faaca8 100%);
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+            font-family: "Roboto", sans-serif;
+            font-weight: 600;
+        }
+
+   .shine-button {
+    position: relative;
+    overflow: hidden !important;   /* HARD CLIP */
+    border-radius: 8px;
+    display: inline-block;
+    padding: 6px;
+    color: white;
+    z-index: 1;
+}
+
+.shine-button::before {
+    content: "";
+    position: absolute;
+    inset: 0;     /* lock inside button box */
+    margin-left: -100%; 
+    width: 60px;
+    background: linear-gradient(90deg,
+                transparent,
+                rgba(255,255,255,0.35),
+                transparent);
+
+    transform: skewX(-25deg);
+    animation: shine-move 2.2s ease-in-out infinite;
+}
+
+@keyframes shine-move {
+    0%   { margin-left: -100%; }
+    60%  { margin-left: 120%; }
+    100% { margin-left: 120%; }
+}
+
+        .button-purple {
+            background: linear-gradient(135deg, #8e2de2 0%, #4a00e0 100%);
+            color: #fff;
+            border: 1px solid white;
+
+            box-shadow: 0 10px 30px rgba(142, 45, 226, 0.3);
+        }
+
+        .button-purple:hover {
+            transform: translateY(-3px);
+            border: 1px solid green;
+            box-shadow: 0 15px 40px rgba(142, 45, 226, 0.5);
+        }
+
+        .button-red:hover {
+            transform: translateY(-3px);
+            border: 1px solid green;
+            color: #f1f5f1;
+
+            
+            box-shadow: 0 15px 40px rgba(255, 88, 88, 0.5);
+        }
+
+        .shadow {
+            backdrop-filter: blur(10px);
+            border: 2px white solid;
+            color: white;
+        }
+
+        nav a:nth-of-type(2) {
+            color: white;
+        }
+        .tt{
+            width: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Responsive Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
+        <a class="navbar-brand" href="/admin/dashboard">
+            <i class="fa-solid fa-building-wheat"></i> Admin Panel
+        </a>
+
+        <!-- Mobile toggler -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navbarSupportedContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Menu -->
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="ms-auto">
+                <a href="/logout" class=" tt button-red btn-sm"
+                    style="text-decoration: none; color: white;   border: None; border-radius: 5px; font-size: 0.8rem;">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+
+        <h3 class="mb-4 text-center text-success">
+            <i class="fa-solid fa-calendar-week"></i> Leave Requests
+        </h3>
+
+        <div class="card shadow p-3">
+
+            <!-- Make table scrollable on mobile -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark text-center">
+                        <tr>
+                            <th>Sno</th>
+                            <th>Employee Name</th>
+                                    <th>Department</th>
+                            <th>Reason</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                            <tbody id="requests-tbody" class="text-center">
+                                {% for row in data %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ row.full_name }}</td>
+                                    <td>{{ row.department }}</td>
+                                    <td>{{ row.reason }}</td>
+                                    <td>{{ row.from_date }}</td>
+                                    <td>{{ row.to_date }}</td>
+                                    <td>
+                                        {% if row.status == "Pending" %}
+                                        <span class="badge bg-warning text-dark">{{ row.status }}</span>
+                                        {% elif row.status == "Approved" %}
+                                        <span class="badge bg-success">{{ row.status }}</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">{{ row.status }}</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if row.status == "Pending" %}
+                                        <a href="/admin/update/{{row.id}}/approve" class="btn btn-sm btn-success">Approve</a>
+                                        <a href="/admin/update/{{row.id}}/reject" class="btn btn-sm btn-danger">Reject</a>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center">No leave requests found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+
+                </table>
+
+                    <div style="width:100%; margin-top:12px; display:flex; gap:8px; align-items:center;">
+                        <input id="requests-search" type="search" placeholder="Search by employee, dept, reason, type, status or date" style="flex:1; padding:8px; border-radius:6px; border:1px solid #ccc;">
+                        <button id="requests-clear" class="btn btn-sm btn-secondary">Clear</button>
+                    </div>
+            </div>
+
+            <a href="/admin/dashboard" class="btn shine-button button-purple mt-2">
+                <i class="fa-solid fa-angles-left"></i> Back to Dashboard
+            </a>
+
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Debounced live search for leave requests
+;(function(){
+    const input = document.getElementById('requests-search');
+    const clearBtn = document.getElementById('requests-clear');
+    const tbody = document.getElementById('requests-tbody');
+    if (!input || !tbody) return;
+    let timer = null;
+
+    function escapeHtml(s){
+        return (s||'').toString().replace(/[&<>"']/g, function(c){
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c];
+        });
+    }
+
+    function renderRows(rows){
+        if (!rows || rows.length === 0){
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center">No leave requests found.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = rows.map((r, idx) => {
+            const status = r.status || '';
+            let statusBadge = '<span class="badge bg-danger">' + escapeHtml(status) + '</span>';
+            if (status === 'Pending') statusBadge = '<span class="badge bg-warning text-dark">' + escapeHtml(status) + '</span>';
+            if (status === 'Approved') statusBadge = '<span class="badge bg-success">' + escapeHtml(status) + '</span>';
+
+            const actions = status === 'Pending'
+                ? ('<a href="/admin/update/' + r.id + '/approve" class="btn btn-sm btn-success">Approve</a> <a href="/admin/update/' + r.id + '/reject" class="btn btn-sm btn-danger">Reject</a>')
+                : '<span class="text-muted">-</span>';
+
+            return '<tr>' +
+                '<td>' + (idx+1) + '</td>' +
+                '<td>' + escapeHtml(r.full_name) + '</td>' +
+                '<td>' + escapeHtml(r.department || '') + '</td>' +
+                '<td>' + escapeHtml(r.reason || '') + '</td>' +
+                '<td>' + escapeHtml(r.from_date || '') + '</td>' +
+                '<td>' + escapeHtml(r.to_date || '') + '</td>' +
+                '<td>' + statusBadge + '</td>' +
+                '<td>' + actions + '</td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    async function doSearch(q){
+        try{
+            const resp = await fetch('/admin/requests/search?q=' + encodeURIComponent(q), {credentials:'same-origin'});
+            if (!resp.ok) return;
+            const data = await resp.json();
+            renderRows(data);
+        }catch(e){
+            console.error('search error', e);
+        }
+    }
+
+    input.addEventListener('input', function(e){
+        clearTimeout(timer);
+        timer = setTimeout(()=> doSearch(e.target.value.trim()), 250);
+    });
+
+    clearBtn && clearBtn.addEventListener('click', function(){
+        input.value = '';
+        doSearch('');
+    });
+})();
+</script>
+
+</body>
+
+</html>

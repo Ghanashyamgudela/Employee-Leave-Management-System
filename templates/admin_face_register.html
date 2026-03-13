@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Face Registration</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background-image: linear-gradient(-20deg, #ddd6f3 0%, #faaca8 100%, #faaca8 100%);
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-attachment: fixed;
+
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            background: inherit;
+            border: 2px solid white;
+            padding: 20px;
+            border-radius: 8px
+        }
+
+        .shine-button {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            padding: 8px 16px
+        }
+
+        .shine-button::before {
+            content: '';
+            position: absolute;
+            height: 250%;
+            width: 40px;
+            top: 0;
+            left: -60px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transform: rotate(45deg) translateY(-35%);
+            animation: shine 3s ease infinite
+        }
+
+        @keyframes shine {
+            0% {
+                left: -80px
+            }
+
+            40%,
+            100% {
+                left: calc(100%+20px)
+            }
+        }
+    </style>
+    <script>
+        async function captureOne() {
+            const emp = document.getElementById('employee').value;
+            if (!emp) { alert('Select employee'); return; }
+            document.getElementById('status').textContent = 'Capturing...';
+            const resp = await fetch('/admin/capture_face', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ employee_id: emp }) });
+            const j = await resp.json();
+            if (j.ok) { document.getElementById('status').textContent = `Saved ${j.count} images`; }
+            else { document.getElementById('status').textContent = j.msg || 'Error'; }
+        }
+
+        async function autoCapture() {
+            const target = parseInt(document.getElementById('target').value || '30', 10);
+            document.getElementById('status').textContent = 'Auto capture running...';
+            for (let i = 0; i < target; i++) {
+                await captureOne();
+                await new Promise(r => setTimeout(r, 300));
+            }
+            document.getElementById('status').textContent = 'Auto capture finished';
+        }
+
+        async function train() {
+            document.getElementById('status').textContent = 'Training...';
+            const resp = await fetch('/admin/train_faces', { method: 'POST' });
+            const j = await resp.json();
+            if (j.ok) document.getElementById('status').textContent = 'Training completed';
+            else document.getElementById('status').textContent = j.msg || 'Training failed';
+        }
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <h3>Face Registration / Dataset Capture</h3>
+        <p>Select an employee, open the camera view, then capture faces. Click Train to rebuild the recognizer.</p>
+
+        <div class="mb-3">
+            <label>Employee</label>
+            <select id="employee" class="form-select">
+                <option value="">-- Select --</option>
+                {% for s in students %}
+                <option value="{{ s.student_id }}">{{ s.full_name }} ({{ s.student_id }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <img src="{{ url_for('video') }}"
+                style="width:100%;max-height:480px;object-fit:cover;border:1px solid #ddd">
+        </div>
+
+        <div class="mb-3 d-flex gap-2">
+            <button onclick="captureOne()" class="btn btn-primary shine-button">Capture One</button>
+            <input id="target" type="number" value="30" style="width:90px" class="form-control" />
+            <button onclick="autoCapture()" class="btn btn-success shine-button">Auto Capture</button>
+            <button onclick="train()" class="btn btn-warning shine-button">Train</button>
+        </div>
+        <div id="status" style="margin-top:10px;color:green;font-weight:600"></div>
+        <div style="margin-top:12px"><button class="btn btn-secondary shine-button"><a href="/admin/students"
+                    style="text-decoration: none; color: inherit;">Back to Employees</a></button></div>
+    </div>
+    </div>
+</body>
+
+</html>

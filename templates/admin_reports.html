@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Reports</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <style>
+        body{
+background-image: linear-gradient(-20deg, #ddd6f3 0%, #faaca8 100%, #faaca8 100%);background-repeat: no-repeat;
+background-size: cover;
+background-attachment: fixed;
+
+
+        }
+        
+        h1{
+            margin-top: 50px;
+            color: green;
+            margin-bottom: 80px;
+        }
+        table { border-collapse: collapse; width: 80%; margin: auto; }
+        th, td { border: 2px solid white ; padding: 8px; text-align: center; }
+        th { background-color: #f2f2f2; }
+        h1, h3 { text-align: center; }
+        .shine-button {
+            border: 1px solid white;
+            position: relative;
+            overflow: hidden !important;
+            display: inline-block;
+            vertical-align: middle;
+            border-radius: 12px;
+            padding: 8px 24px;
+            min-width: 120px;
+            text-align: center;
+        }
+        .shine-button::before {
+            content: '';
+            position: absolute;
+            height: 250%;
+            width: 40px;
+            top: 0;
+            left: -60px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transform: rotate(45deg) translateY(-35%);
+            animation: shine 3s ease infinite;
+            pointer-events: none;
+            border-radius: 12px;
+        }
+        @keyframes shine {
+            0% { left: -80px; }
+            40%,100% { left: calc(100% + 20px); }
+        }
+        .button-yellow {
+            background: linear-gradient(135deg, #fceabb 0%, #f8b500 100%);
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(248,181,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .button-yellow:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(248,181,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+        body{
+            font-family: "Roboto", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
+        }
+    </style>
+</head>
+<body><div class="t" style="text-align:center;">
+    <h1><i class="fa-solid fa-table-list"></i> Admin Leave Reports</h1>
+</div>
+    <h3>Overall Summary</h3>
+    <table>
+        <tr>
+            <th>Total Requests</th>
+            <th>Approved</th>
+            <th>Rejected</th>
+            <th>Pending</th>
+        </tr>
+        <tr>
+            <td>{{ total }}</td>
+            <td>{{ approved }}</td>
+            <td>{{ rejected }}</td>
+            <td>{{ pending }}</td>
+        </tr>
+    </table>
+
+    <h3>Summary Per Employee</h3>
+    <table>
+        <tr>
+            <th>Employee Name</th>
+            <th>Total Leaves</th>
+            <th>Approved</th>
+            <th>Rejected</th>
+            <th>Pending</th>
+        </tr>
+        {% for student in student_summary %}
+        <tr>
+            <td>{{ student.full_name }}</td>
+            <td>{{ student.total_leaves }}</td>
+            <td>{{ student.approved }}</td>
+            <td>{{ student.rejected }}</td>
+            <td>{{ student.pending }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <div style="text-align:center; margin-top:20px;">
+        <a href="{{ url_for('admin_dashboard') }}" class="shine-button button-yellow" style="padding: 10px 24px; border-radius: 6px; text-decoration: none;"><i class="fa-solid fa-angles-left"></i> Back to Dashboard</a>
+
+    </div>
+</body>
+</html>
