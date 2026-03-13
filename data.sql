@@ -2,7 +2,7 @@
 --
 -- Host: localhost    Database: student
 -- ------------------------------------------------------
--- Server version	8.0.43
+-- Server version       8.0.43
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -39,6 +39,32 @@ LOCK TABLES `admins` WRITE;
 /*!40000 ALTER TABLE `admins` DISABLE KEYS */;
 INSERT INTO `admins` VALUES (1,'admin','admin123');
 /*!40000 ALTER TABLE `admins` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `attendance`
+--
+
+DROP TABLE IF EXISTS `attendance`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `attendance` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `employee_id` int DEFAULT NULL,
+  `date` date DEFAULT NULL,
+  `time` time DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `attendance`
+--
+
+LOCK TABLES `attendance` WRITE;
+/*!40000 ALTER TABLE `attendance` DISABLE KEYS */;
+INSERT INTO `attendance` VALUES (1,11,'2026-03-13','13:08:50');
+/*!40000 ALTER TABLE `attendance` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -90,6 +116,31 @@ LOCK TABLES `faculty` WRITE;
 /*!40000 ALTER TABLE `faculty` DISABLE KEYS */;
 INSERT INTO `faculty` VALUES ('f1','f1','f1@gmail.com','f1','f1','n'),('f2','f2','f2@gmail.com','f2','f2','n'),('h1','h1','h1@gmail.com','h1','h1','y');
 /*!40000 ALTER TABLE `faculty` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `holidays`
+--
+
+DROP TABLE IF EXISTS `holidays`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `holidays` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `holiday_name` varchar(100) DEFAULT NULL,
+  `holiday_date` date DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `holidays`
+--
+
+LOCK TABLES `holidays` WRITE;
+/*!40000 ALTER TABLE `holidays` DISABLE KEYS */;
+INSERT INTO `holidays` VALUES (1,'New Year','2026-01-01'),(2,'Republic Day','2026-01-26'),(3,'Independence Day','2026-08-15'),(4,'Diwali','2026-11-08'),(5,'Christmas','2026-12-25'),(6,'Ugadi','2026-03-19');
+/*!40000 ALTER TABLE `holidays` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -197,4 +248,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-12-12 20:09:21
+-- Dump completed on 2026-03-13 15:38:01
