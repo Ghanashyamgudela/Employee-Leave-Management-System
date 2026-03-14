@@ -8,7 +8,7 @@ from email.mime.text import MIMEText
 from datetime import datetime, timedelta, date
 import secrets
 import os, pymysql
-
+import config
 import cv2
 import numpy as np
 
