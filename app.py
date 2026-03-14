@@ -5,7 +5,7 @@ from openpyxl import Workbook
 from io import BytesIO
 import smtplib
 from email.mime.text import MIMEText
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import secrets
 import os, pymysql
 
@@ -32,11 +32,7 @@ app.secret_key = "xyz123"
 app.config.from_pyfile('config.py')
 
 # Railway environment variables
-app.config['MYSQL_HOST'] = os.getenv('MYSQLHOST')
-app.config['MYSQL_USER'] = os.getenv('MYSQLUSER')
-app.config['MYSQL_PASSWORD'] = os.getenv('MYSQLPASSWORD')
-app.config['MYSQL_DB'] = os.getenv('MYSQLDATABASE')
-app.config['MYSQL_PORT'] = int(os.getenv('MYSQLPORT', 3306))
+
 mysql = MySQL(app)
 
 # ---------------- Helpers ----------------
@@ -914,6 +910,8 @@ def admin_face_register():
 def admin_capture_face():
     if 'admin_id' not in session:
         return jsonify({'ok': False, 'msg': 'Not authorized'}), 403
+    if not FACE_AVAILABLE or faceCascade is None:
+        return jsonify({'ok': False, 'msg': 'Face detection unavailable on server'}), 503
     data = request.get_json() or {}
     emp = data.get('employee_id')
     if not emp:
@@ -1145,10 +1143,21 @@ def get_holidays():
 
     return jsonify(events)
 
-recognizer = cv2.face.LBPHFaceRecognizer_create()
-recognizer.read('face_attendance/trainer/trainer.yml')
+FACE_AVAILABLE = False
+recognizer = None
+faceCascade = None
+try:
+    # create recognizer from contrib module (may be missing if wrong build)
+    recognizer = cv2.face.LBPHFaceRecognizer_create()
+    # load trained model if available
+    trainer_path = os.path.join('face_attendance', 'trainer', 'trainer.yml')
+    if os.path.exists(trainer_path):
+        recognizer.read(trainer_path)
+    faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+    FACE_AVAILABLE = True
+except Exception as e:
+    app.logger.error(f"Face modules not available or failed to initialize: {e}")
 
-faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 # confidence: lower is better for LBPH. Default threshold can be configured in config.py
 # Example: ATT_CONFIDENCE = 80
 ATT_CONFIDENCE = int(app.config.get('ATT_CONFIDENCE', 80))
@@ -1197,6 +1206,8 @@ def attendance():
         
 @app.route('/video')
 def video():
+    if not FACE_AVAILABLE:
+        return "Face recognition unavailable on server", 503
     return Response(generate_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
@@ -1205,6 +1216,9 @@ def video():
 def mark_attendance():
     if 'student_id' not in session:
         return jsonify({'ok': False, 'msg': 'Not logged in'}), 403
+
+    if not FACE_AVAILABLE:
+        return jsonify({'ok': False, 'msg': 'Face recognition unavailable on server'}), 503
 
     # If attendance already recorded today for this user, return immediately
     try:
