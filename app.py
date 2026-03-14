@@ -7,9 +7,11 @@ import smtplib
 from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 import secrets
-import os
+import os, pymysql
+
 import cv2
 import numpy as np
+
 from PIL import Image
 
 
@@ -26,7 +28,15 @@ app = Flask(__name__)
 app.secret_key = "xyz123"
 
 # Load config from config.py (you already use this)
+# Load default config
 app.config.from_pyfile('config.py')
+
+# Railway environment variables
+app.config['MYSQL_HOST'] = os.getenv('MYSQLHOST')
+app.config['MYSQL_USER'] = os.getenv('MYSQLUSER')
+app.config['MYSQL_PASSWORD'] = os.getenv('MYSQLPASSWORD')
+app.config['MYSQL_DB'] = os.getenv('MYSQLDATABASE')
+app.config['MYSQL_PORT'] = int(os.getenv('MYSQLPORT', 3306))
 mysql = MySQL(app)
 
 # ---------------- Helpers ----------------
@@ -1257,5 +1267,6 @@ def stop_camera():
     return redirect('/student/dashboard')
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
 
+    
