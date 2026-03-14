@@ -30,7 +30,11 @@ app.secret_key = "xyz123"
 # Load config from config.py (you already use this)
 # Load default config
 app.config.from_pyfile('config.py')
-
+app.config['MYSQL_HOST'] = config.MYSQL_HOST
+app.config['MYSQL_USER'] = config.MYSQL_USER
+app.config['MYSQL_PASSWORD'] = config.MYSQL_PASSWORD
+app.config['MYSQL_DB'] = config.MYSQL_DB
+app.config['MYSQL_PORT'] = config.MYSQL_PORT
 # Railway environment variables
 
 mysql = MySQL(app)
