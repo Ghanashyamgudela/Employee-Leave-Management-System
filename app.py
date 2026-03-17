@@ -3,7 +3,6 @@ from flask_mysqldb import MySQL
 import MySQLdb.cursors
 from openpyxl import Workbook
 from io import BytesIO
-import smtplib
 from email.mime.text import MIMEText
 from datetime import datetime, timedelta, date
 import secrets
