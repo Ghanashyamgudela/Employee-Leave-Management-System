@@ -55,7 +55,7 @@ app.config['MAIL_USERNAME'] = os.environ.get("MAIL_USER")
 app.config['MAIL_PASSWORD'] = os.environ.get("MAIL_PASS")
 app.config['MYSQL_CONNECT_TIMEOUT'] = 10
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
-
+app.config['MYSQL_AUTOCOMMIT'] = True
 # Railway environment variables
 
 mysql = MySQL(app)
