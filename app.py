@@ -8,7 +8,7 @@ from email.mime.text import MIMEText
 from datetime import datetime, timedelta, date
 import secrets
 import os, pymysql
-import config
+
 import cv2
 import numpy as np
 
@@ -31,12 +31,15 @@ app.secret_key = "xyz123"
 # Load default config
 app.config.from_pyfile('config.py')
 
-app.config['MYSQL_HOST'] = config.MYSQL_HOST
-app.config['MYSQL_USER'] = config.MYSQL_USER
-app.config['MYSQL_PASSWORD'] = config.MYSQL_PASSWORD
-app.config['MYSQL_DB'] = config.MYSQL_DB
-app.config['MYSQL_PORT'] = config.MYSQL_PORT
+app.config['MYSQL_HOST'] = os.environ.get("MYSQLHOST")
+app.config['MYSQL_USER'] = os.environ.get("MYSQLUSER")
+app.config['MYSQL_PASSWORD'] = os.environ.get("MYSQLPASSWORD")
+app.config['MYSQL_DB'] = os.environ.get("MYSQLDATABASE")
+app.config['MYSQL_PORT'] = int(os.environ.get("MYSQLPORT", 3306))
 # Railway environment variables
+print("MYSQL HOST:", os.environ.get("MYSQLHOST"))
+print("MYSQL USER:", os.environ.get("MYSQLUSER"))
+print("MYSQL DB:", os.environ.get("MYSQLDATABASE"))
 
 mysql = MySQL(app)
 
