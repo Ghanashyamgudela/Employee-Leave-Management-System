@@ -56,7 +56,7 @@ app.config['MYSQL_AUTOCOMMIT'] = True
 
 mysql = MySQL(app)
 
-# ---------------- Helpers ----------------
+'''# ---------------- Helpers ----------------
 def send_email(to_email, subject, body):
     """DISABLED EMAIL (Railway fix)"""
     print("EMAIL DISABLED")
@@ -81,7 +81,42 @@ def send_email(to_email, subject, body):
     except Exception as e:
         return False, str(e)"""
  
-    
+'''
+import os
+
+def send_email(to_email, subject, body):
+    try:
+        api_key = os.environ.get("SENDGRID_API_KEY")
+
+        response = requests.post(
+            "https://api.sendgrid.com/v3/mail/send",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "personalizations": [
+                    {
+                        "to": [{"email": to_email}]
+                    }
+                ],
+                "from": {
+                    "email": "ghana19183@gmail.com"
+                },
+                "subject": subject,
+                "content": [
+                    {
+                        "type": "text/plain",
+                        "value": body
+                    }
+                ]
+            }
+        )
+
+        return response.status_code == 202, response.text
+
+    except Exception as e:
+        return False, str(e)
 
 def days_between_dates(start_date_str, end_date_str, half_day=False):
     fmt = "%Y-%m-%d"
