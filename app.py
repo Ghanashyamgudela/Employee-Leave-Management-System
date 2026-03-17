@@ -58,7 +58,13 @@ mysql = MySQL(app)
 
 # ---------------- Helpers ----------------
 def send_email(to_email, subject, body):
-    """Send an email using SMTP settings from config.py"""
+    """DISABLED EMAIL (Railway fix)"""
+    print("EMAIL DISABLED")
+    print("TO:", to_email)
+    print("SUBJECT:", subject)
+    print("BODY:", body)
+    return True, None
+    """Send an email using SMTP settings from config.py
     try:
         msg = MIMEText(body)
         msg['Subject'] = subject
@@ -73,7 +79,9 @@ def send_email(to_email, subject, body):
         server.quit()
         return True, None
     except Exception as e:
-        return False, str(e)
+        return False, str(e)"""
+ 
+    
 
 def days_between_dates(start_date_str, end_date_str, half_day=False):
     fmt = "%Y-%m-%d"
