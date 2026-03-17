@@ -83,41 +83,53 @@ def send_email(to_email, subject, body):
  
 '''
 import os
+import requests
 
 def send_email(to_email, subject, body):
     try:
         api_key = os.environ.get("SENDGRID_API_KEY")
 
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+
+        data = {
+            "personalizations": [
+                {
+                    "to": [{"email": to_email}]
+                }
+            ],
+            "from": {
+                "email": "ghana.btechmails@gmail.com"
+            },
+            "subject": subject,
+            "content": [
+                {
+                    "type": "text/plain",
+                    "value": body
+                }
+            ]
+        }
+
         response = requests.post(
             "https://api.sendgrid.com/v3/mail/send",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "personalizations": [
-                    {
-                        "to": [{"email": to_email}]
-                    }
-                ],
-                "from": {
-                    "email": "ghana.btechmails@gmail.com@gmail.com"
-                },
-                "subject": subject,
-                "content": [
-                    {
-                        "type": "text/plain",
-                        "value": body
-                    }
-                ]
-            }
+            headers=headers,
+            json=data
         )
 
-        return response.status_code == 202, response.text
+        print("SENDGRID STATUS:", response.status_code)
+        print("SENDGRID RESPONSE:", response.text)
+
+        if response.status_code == 202:
+            return True, None
+        else:
+            return False, response.text
 
     except Exception as e:
+        print("EMAIL ERROR:", e)
         return False, str(e)
-
+        
 def days_between_dates(start_date_str, end_date_str, half_day=False):
     fmt = "%Y-%m-%d"
     s = datetime.strptime(start_date_str, fmt)
