@@ -11,7 +11,6 @@ import os, pymysql
 from urllib.parse import urlparse
 import cv2
 import numpy as np
-
 from PIL import Image
 
 
@@ -143,45 +142,61 @@ def deduct_balance_for_leave(student_id, leave_type, days):
 
 # ---------------- ROUTES (existing + new) ----------------
 
+
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        password = request.form['password']
-        department = request.form.get('department')
+        try:
+            name = request.form['name']
+            email = request.form['email']
+            password = request.form['password']
+            department = request.form.get('department')
 
-        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cur.execute("SELECT * FROM student WHERE email=%s", (email,))
-        account = cur.fetchone()
+            # DB connection
+            cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
 
-        if account:
-            flash("Email already registered! Please login.")
+            # Check if email exists
+            cur.execute("SELECT * FROM student WHERE email=%s", (email,))
+            account = cur.fetchone()
+
+            if account:
+                flash("Email already registered! Please login.")
+                return redirect('/register')
+
+            # Generate token
+            token = secrets.token_urlsafe(32)
+
+            # Insert user
+            cur.execute("""
+                INSERT INTO student (full_name, email, password, is_verified, verification_token, department)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (name, email, password, 0, token, department))
+
+            mysql.connection.commit()
+
+            # Generate verification URL
+            verify_url = request.url_root.rstrip('/') + '/verify/' + token
+
+            # 🚫 Disable email (fix Railway timeout)
+            ok, err = True, None
+
+            # ✅ Print link in logs (VERY IMPORTANT)
+            print("VERIFY LINK:", verify_url)
+
+            if ok:
+                flash("Registration successful! (Email disabled - check logs)")
+            else:
+                flash(f"Registration saved but failed to send email: {err}")
+
+            return redirect('/admin/dashboard')
+
+        except Exception as e:
+            print("ERROR IN REGISTER:", e)
+            flash("Something went wrong during registration.")
             return redirect('/register')
 
-        token = secrets.token_urlsafe(32)
-
-        # Add default balances if columns exist; otherwise DB will use defaults
-        cur.execute("""
-            INSERT INTO student (full_name, email, password, is_verified, verification_token, department)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (name, email, password, 0, token, department))
-        mysql.connection.commit()
-
-        verify_url = request.url_root.rstrip('/') + '/verify/' + token
-        subject = "Verify Your Account"
-        body = f"Hello {name},\n\nClick the link below to verify your account:\n{verify_url}\n\nThank you!"
-
-        ok, err = send_email(email, subject, body)
-        if ok:
-            flash("Registration successful! Please check your email for verification link.")
-        else:
-            flash(f"Registration saved but failed to send verification email: {err}")
-
-        return redirect('/admin/dashboard')
-
     return render_template('register.html')
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
