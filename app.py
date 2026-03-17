@@ -49,7 +49,7 @@ import os
 
 app.config['MAIL_USERNAME'] = os.environ.get("MAIL_USER")
 app.config['MAIL_PASSWORD'] = os.environ.get("MAIL_PASS")
-
+app.config['MYSQL_CONNECT_TIMEOUT'] = 10
 
 # Railway environment variables
 
