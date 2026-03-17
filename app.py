@@ -29,27 +29,32 @@ app.secret_key = "xyz123"
 
 # Load config from config.py (you already use this)
 # Load default config
+
 db_url = os.environ.get("DATABASE_URL")
 
-url = urlparse(db_url)
+if db_url:
+    url = urlparse(db_url)
+    app.config['MYSQL_HOST'] = os.environ.get("MYSQLHOST")
+    app.config['MYSQL_USER'] = os.environ.get("MYSQLUSER")
+    app.config['MYSQL_PASSWORD'] = os.environ.get("MYSQLPASSWORD")
+    app.config['MYSQL_DB'] = os.environ.get("MYSQLDATABASE")
+    app.config['MYSQL_PORT'] = int(os.environ.get("MYSQLPORT", 3306))
+
+
+
 app.config.from_pyfile('config.py')
 
-app.config['MYSQL_HOST'] = os.environ.get("MYSQLHOST")
-app.config['MYSQL_USER'] = os.environ.get("MYSQLUSER")
-app.config['MYSQL_PASSWORD'] = os.environ.get("MYSQLPASSWORD")
-app.config['MYSQL_DB'] = os.environ.get("MYSQLDATABASE")
-app.config['MYSQL_PORT'] = int(os.environ.get("MYSQLPORT", 3306))
 # Railway environment variables
 print("MYSQL HOST:", os.environ.get("MYSQLHOST"))
 print("MYSQL USER:", os.environ.get("MYSQLUSER"))
 print("MYSQL DB:", os.environ.get("MYSQLDATABASE"))
 
-mysql = MySQL(app)
 import os
 
 app.config['MAIL_USERNAME'] = os.environ.get("MAIL_USER")
 app.config['MAIL_PASSWORD'] = os.environ.get("MAIL_PASS")
 app.config['MYSQL_CONNECT_TIMEOUT'] = 10
+app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 # Railway environment variables
 
