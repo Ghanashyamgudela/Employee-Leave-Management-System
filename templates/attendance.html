@@ -76,52 +76,76 @@ h2{
 <h2>Face Recognition Attendance</h2>
 
 <div class="camera-frame">
-<img src="{{ url_for('video') }}" width="700">
+    <video id="video" width="700" autoplay playsinline></video>
 </div>
 
-<div class="status">
-Camera Active - Please look at the camera
-</div>
+<div class="status" id="status">Camera Active - Please look at the camera</div>
 
 <br>
 
 <button id="markBtn" class="btn">Face Attendance</button>
 &nbsp;
 <a href="{{ url_for('stop_camera') }}">
-<button class="btn">Back to Dashboard</button>
+    <button class="btn">Back to Dashboard</button>
 </a>
 
 <script>
-document.getElementById('markBtn').addEventListener('click', function(){
-    var statusEl = document.querySelector('.status');
+const video = document.getElementById('video');
+const statusEl = document.getElementById('status');
+let streamTracks = [];
+
+async function startCamera(){
+    try {
+        const s = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = s;
+        streamTracks = s.getTracks();
+    } catch (err) {
+        statusEl.style.color = 'red';
+        statusEl.textContent = 'Unable to access camera';
+    }
+}
+
+function stopCamera(){
+    try { streamTracks.forEach(t=>t.stop()); } catch(e){}
+}
+
+async function captureFrameAsDataURL(){
+    const w = video.videoWidth || 640;
+    const h = video.videoHeight || 480;
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(video, 0, 0, w, h);
+    return c.toDataURL('image/jpeg', 0.9);
+}
+
+document.getElementById('markBtn').addEventListener('click', async function(){
+    statusEl.style.color = 'black';
     statusEl.textContent = 'Checking...';
-    fetch('/mark_attendance', { method: 'POST' })
-    .then(r => r.json())
-    .then(data => {
-        if(data.ok){
+    try {
+        const dataURL = await captureFrameAsDataURL();
+        const resp = await fetch('/mark_attendance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: dataURL })
+        });
+        const j = await resp.json();
+        if(j.ok){
             statusEl.style.color = 'green';
-            statusEl.textContent = data.msg;
+            statusEl.textContent = j.msg;
         } else {
             statusEl.style.color = 'red';
-            statusEl.textContent = data.msg;
-            if(data.predictions){
-                statusEl.textContent += ' | Predictions: ' + data.predictions.map(p=>p.id+" ("+p.confidence.toFixed(1)+")").join(', ');
-            }
+            statusEl.textContent = j.msg || 'Not recognized';
+            if(j.predictions) statusEl.textContent += ' | ' + j.predictions.map(p=>p.id+" ("+p.confidence.toFixed(1)+")").join(', ');
         }
-    }).catch(err => {
+    } catch (e) {
         statusEl.style.color = 'red';
         statusEl.textContent = 'Error marking attendance';
-    });
-});
-
-// Ensure camera is stopped when leaving the page
-window.addEventListener('beforeunload', function () {
-    try {
-        navigator.sendBeacon('/stop_camera');
-    } catch (e) {
-        fetch('/stop_camera', {method:'POST', keepalive:true});
     }
 });
+
+window.addEventListener('beforeunload', function () { stopCamera(); });
+startCamera();
 </script>
 
 </div>
