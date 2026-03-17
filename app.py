@@ -101,7 +101,7 @@ def send_email(to_email, subject, body):
                     }
                 ],
                 "from": {
-                    "email": "ghana19183@gmail.com"
+                    "email": "ghana.btechmails@gmail.com@gmail.com"
                 },
                 "subject": subject,
                 "content": [
