@@ -8,7 +8,7 @@ from email.mime.text import MIMEText
 from datetime import datetime, timedelta, date
 import secrets
 import os, pymysql
-from urllib.parse import urlparse
+
 import cv2
 import numpy as np
 
@@ -29,6 +29,7 @@ app.secret_key = "xyz123"
 
 # Load config from config.py (you already use this)
 # Load default config
+app.config.from_pyfile('config.py')
 db_url = os.environ.get("DATABASE_URL")
 
 url = urlparse(db_url)
@@ -49,6 +50,11 @@ import os
 
 app.config['MAIL_USERNAME'] = os.environ.get("MAIL_USER")
 app.config['MAIL_PASSWORD'] = os.environ.get("MAIL_PASS")
+
+
+# Railway environment variables
+
+mysql = MySQL(app)
 
 # ---------------- Helpers ----------------
 def send_email(to_email, subject, body):
@@ -935,41 +941,49 @@ def admin_capture_face():
     ds_dir = os.path.join('face_attendance', 'dataset')
     os.makedirs(ds_dir, exist_ok=True)
 
-    # open camera, capture one frame, detect first face, save
-    cap = cv2.VideoCapture(0)
+    # Expect a base64-encoded image from the browser camera
+    data = request.get_json() or {}
+    img_b64 = data.get('image')
+    if not img_b64:
+        return jsonify({'ok': False, 'msg': 'No image provided'}), 400
+
+    # allow data URLs
+    if img_b64.startswith('data:'):
+        img_b64 = img_b64.split(',', 1)[1]
+
     try:
-        success, img = cap.read()
-        if not success:
-            return jsonify({'ok': False, 'msg': 'Camera error'})
+        import base64
+        img_data = base64.b64decode(img_b64)
+        nparr = np.frombuffer(img_data, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    except Exception:
+        return jsonify({'ok': False, 'msg': 'Invalid image data'}), 400
 
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        faces = faceCascade.detectMultiScale(gray, 1.3, 5)
-        if len(faces) == 0:
-            return jsonify({'ok': False, 'msg': 'No face found'})
+    if img is None:
+        return jsonify({'ok': False, 'msg': 'Failed to decode image'}), 400
 
-        # determine next count
-        existing = [f for f in os.listdir(ds_dir) if f".{emp}." in f]
-        next_idx = 1
-        if existing:
-            # parse highest count
-            counts = []
-            for fn in existing:
-                try:
-                    counts.append(int(fn.split('.')[-2]))
-                except Exception:
-                    pass
-            if counts:
-                next_idx = max(counts) + 1
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = faceCascade.detectMultiScale(gray, 1.3, 5)
+    if len(faces) == 0:
+        return jsonify({'ok': False, 'msg': 'No face found'})
 
-        x, y, w, h = faces[0]
-        fname = f"User.{emp}.{next_idx}.jpg"
-        cv2.imwrite(os.path.join(ds_dir, fname), gray[y:y+h, x:x+w])
-        return jsonify({'ok': True, 'count': next_idx})
-    finally:
-        try:
-            cap.release()
-        except Exception:
-            pass
+    # determine next count
+    existing = [f for f in os.listdir(ds_dir) if f".{emp}." in f]
+    next_idx = 1
+    if existing:
+        counts = []
+        for fn in existing:
+            try:
+                counts.append(int(fn.split('.')[-2]))
+            except Exception:
+                pass
+        if counts:
+            next_idx = max(counts) + 1
+
+    x, y, w, h = faces[0]
+    fname = f"User.{emp}.{next_idx}.jpg"
+    cv2.imwrite(os.path.join(ds_dir, fname), gray[y:y+h, x:x+w])
+    return jsonify({'ok': True, 'count': next_idx})
 
 
 @app.route('/admin/train_faces', methods=['POST'])
@@ -1178,38 +1192,9 @@ except Exception as e:
 ATT_CONFIDENCE = int(app.config.get('ATT_CONFIDENCE', 80))
 
 def generate_frames():
-    # open camera per-stream so it can be reopened later
-    cap = cv2.VideoCapture(0)
-    try:
-        while True:
-            success, img = cap.read()
-            if not success:
-                break
-
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            faces = faceCascade.detectMultiScale(gray, 1.3, 5)
-
-            for (x, y, w, h) in faces:
-                try:
-                    id, confidence = recognizer.predict(gray[y:y+h, x:x+w])
-                except Exception:
-                    continue
-
-                if confidence < ATT_CONFIDENCE:
-                    cv2.putText(img, "Employee " + str(id), (x, y-10),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
-                cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
-
-            ret, buffer = cv2.imencode('.jpg', img)
-            frame = buffer.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-    finally:
-        try:
-            cap.release()
-        except Exception:
-            pass
+    # Server-side camera streaming is disabled. Use browser camera for capture.
+    # This function is retained for compatibility but does not produce frames.
+    return
         
 @app.route('/attendance')
 def attendance():
@@ -1221,10 +1206,8 @@ def attendance():
         
 @app.route('/video')
 def video():
-    if not FACE_AVAILABLE:
-        return "Face recognition unavailable on server", 503
-    return Response(generate_frames(),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+    # Redirect clients to the attendance page which uses the browser camera
+    return redirect('/attendance')
 
 
 @app.route('/mark_attendance', methods=['POST'])
@@ -1246,18 +1229,25 @@ def mark_attendance():
         # if DB check fails, continue to attempt marking
         pass
 
-    # capture one frame from camera (open/close per-request)
-    cap = cv2.VideoCapture(0)
-    try:
-        success, img = cap.read()
-    finally:
-        try:
-            cap.release()
-        except Exception:
-            pass
+    # Expect a base64 image from browser camera
+    data = request.get_json() or {}
+    img_b64 = data.get('image')
+    if not img_b64:
+        return jsonify({'ok': False, 'msg': 'No image provided'}), 400
 
-    if not success:
-        return jsonify({'ok': False, 'msg': 'Camera error'}), 500
+    if img_b64.startswith('data:'):
+        img_b64 = img_b64.split(',', 1)[1]
+
+    try:
+        import base64
+        img_data = base64.b64decode(img_b64)
+        nparr = np.frombuffer(img_data, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    except Exception:
+        return jsonify({'ok': False, 'msg': 'Invalid image data'}), 400
+
+    if img is None:
+        return jsonify({'ok': False, 'msg': 'Failed to decode image'}), 400
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     faces = faceCascade.detectMultiScale(gray, 1.3, 5)
