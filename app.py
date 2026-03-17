@@ -42,6 +42,10 @@ print("MYSQL USER:", os.environ.get("MYSQLUSER"))
 print("MYSQL DB:", os.environ.get("MYSQLDATABASE"))
 
 mysql = MySQL(app)
+import os
+
+app.config['MAIL_USERNAME'] = os.environ.get("MAIL_USER")
+app.config['MAIL_PASSWORD'] = os.environ.get("MAIL_PASS")
 
 # ---------------- Helpers ----------------
 def send_email(to_email, subject, body):
