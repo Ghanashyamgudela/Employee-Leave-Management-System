@@ -45,9 +45,6 @@ if db_url:
 app.config.from_pyfile('config.py')
 
 # Railway environment variables
-print("MYSQL HOST:", os.environ.get("MYSQLHOST"))
-print("MYSQL USER:", os.environ.get("MYSQLUSER"))
-print("MYSQL DB:", os.environ.get("MYSQLDATABASE"))
 
 import os
 
