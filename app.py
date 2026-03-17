@@ -29,6 +29,9 @@ app.secret_key = "xyz123"
 
 # Load config from config.py (you already use this)
 # Load default config
+db_url = os.environ.get("DATABASE_URL")
+
+url = urlparse(db_url)
 app.config.from_pyfile('config.py')
 
 app.config['MYSQL_HOST'] = os.environ.get("MYSQLHOST")
