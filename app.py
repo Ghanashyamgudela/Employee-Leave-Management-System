@@ -233,7 +233,8 @@ def register():
             verify_url = request.url_root.rstrip('/') + '/verify/' + token
 
             # 🚫 Disable email (fix Railway timeout)
-            ok, err = True, None
+            ok, err = send_email(email, "Verify Your Account", f"Click to verify:\n{verify_url}")
+
 
             # ✅ Print link in logs (VERY IMPORTANT)
             print("VERIFY LINK:", verify_url)
