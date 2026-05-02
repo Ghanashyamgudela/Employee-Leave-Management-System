@@ -23,7 +23,7 @@ except Exception:
     REPORTLAB_AVAILABLE = False
 
 app = Flask(__name__)
-app.secret_key = "xyz123"
+app.secret_key = os.getenv("SECRET_KEY")
 
 # Load config from config.py (you already use this)
 # Load default config
