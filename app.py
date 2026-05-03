@@ -30,14 +30,11 @@ app.secret_key = os.getenv("SECRET_KEY")
 
 
 
-
-app.config['MYSQL_HOST'] = 'flask-db.c5wkuieae6ir.ap-southeast-2.rds.amazonaws.com'
-app.config['MYSQL_USER'] = 'admin'
-app.config['MYSQL_PASSWORD'] = 'Ghana1230'
-app.config['MYSQL_DB'] = 'student'
+app.config['MYSQL_HOST'] = os.environ.get("MYSQLHOST")
+app.config['MYSQL_USER'] = os.environ.get("MYSQLUSER")
+app.config['MYSQL_PASSWORD'] = os.environ.get("MYSQLPASSWORD")
+app.config['MYSQL_DB'] = os.environ.get("MYSQLDATABASE")
 app.config['MYSQL_PORT'] = 3306
-
-
 
 # Railway environment variables
 
