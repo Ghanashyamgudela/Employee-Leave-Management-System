@@ -32,11 +32,11 @@ db_url = os.environ.get("DATABASE_URL")
 
 if db_url:
     url = urlparse(db_url)
-    app.config['MYSQL_HOST'] = os.environ.get("MYSQLHOST")
-    app.config['MYSQL_USER'] = os.environ.get("MYSQLUSER")
-    app.config['MYSQL_PASSWORD'] = os.environ.get("MYSQLPASSWORD")
-    app.config['MYSQL_DB'] = os.environ.get("MYSQLDATABASE")
-    app.config['MYSQL_PORT'] = int(os.environ.get("MYSQLPORT", 3306))
+    app.config['MYSQL_HOST'] = "localhost"
+    app.config['MYSQL_USER'] = "root"
+    app.config['MYSQL_PASSWORD'] = "Ghana@1230"
+    app.config['MYSQL_DB'] = "student"
+    app.config['MYSQL_PORT'] = 3306
 
 
 
