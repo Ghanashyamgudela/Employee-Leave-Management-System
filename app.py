@@ -28,26 +28,23 @@ app.secret_key = os.getenv("SECRET_KEY")
 # Load config from config.py (you already use this)
 # Load default config
 
-db_url = os.environ.get("DATABASE_URL")
 
-if db_url:
-    url = urlparse(db_url)
-    app.config['MYSQL_HOST'] = "localhost"
-    app.config['MYSQL_USER'] = "root"
-    app.config['MYSQL_PASSWORD'] = "Ghana@1230"
-    app.config['MYSQL_DB'] = "student"
-    app.config['MYSQL_PORT'] = 3306
+
+app.config['MYSQL_HOST'] = "localhost"
+app.config['MYSQL_USER'] = "root"
+app.config['MYSQL_PASSWORD'] = "Ghana@1230"
+app.config['MYSQL_DB'] = "student"
+app.config['MYSQL_PORT'] = 3306
 
 
 
-app.config.from_pyfile('config.py')
 
 # Railway environment variables
 
 import os
 
-app.config['MAIL_USERNAME'] = os.environ.get("MAIL_USER")
-app.config['MAIL_PASSWORD'] = os.environ.get("MAIL_PASS")
+app.config['MAIL_USERNAME'] = 'ghana19183@gmail.com'
+app.config['MAIL_PASSWORD'] = "jmwe kafu lmdp cmpr"
 app.config['MYSQL_CONNECT_TIMEOUT'] = 10
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 app.config['MYSQL_AUTOCOMMIT'] = True
