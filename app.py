@@ -1252,7 +1252,7 @@ except Exception as e:
 
 # confidence: lower is better for LBPH. Default threshold can be configured in config.py
 # Example: ATT_CONFIDENCE = 80
-ATT_CONFIDENCE = int(app.config.get('ATT_CONFIDENCE', 80))
+ATT_CONFIDENCE = int(app.config.get('ATT_CONFIDENCE', 90))
 
 def generate_frames():
     # Server-side camera streaming is disabled. Use browser camera for capture.
